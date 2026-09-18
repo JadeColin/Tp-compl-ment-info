@@ -29,16 +29,16 @@ class GameDao(metaclass=Singleton):
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
+                    # Suppression de "detail" de la requête INSERT
                     cursor.execute(
-                        "INSERT INTO game(id_player1, id_player2, game_mode, id_winner, detail) VALUES "
-                        "(%(id_player1)s, %(id_player2)s, %(game_mode)s, %(id_winner)s, %(detail)s) "
+                        "INSERT INTO game(id_player1, id_player2, game_mode, id_winner) VALUES "
+                        "(%(id_player1)s, %(id_player2)s, %(game_mode)s, %(id_winner)s) "
                         "RETURNING id_game;",
                         {
                             "id_player1": id_player1,
                             "id_player2": id_player2,
                             "game_mode": game.game_mode,
                             "id_winner": id_winner,
-                            "detail": game.detail,
                         },
                     )
                     res = cursor.fetchone()
@@ -83,14 +83,13 @@ class GameDao(metaclass=Singleton):
             p2 = PlayerDao().find_by_id(res["id_player2"])
             winner = PlayerDao().find_by_id(res["id_winner"]) if res["id_winner"] else None
 
-            # Étape 2 : Instancier et retourner l'objet Game
+            # Étape 2 : Instancier et retourner l'objet Game SANS detail
             game = Game(
                 id_game=res["id_game"],
                 game_mode=res["game_mode"],
                 player1=p1,
                 player2=p2,
                 winner=winner,
-                detail=res["detail"],
             )
 
         return game
@@ -127,14 +126,13 @@ class GameDao(metaclass=Singleton):
                 p2 = PlayerDao().find_by_id(row["id_player2"])
                 winner = PlayerDao().find_by_id(row["id_winner"]) if row["id_winner"] else None
 
-                # Étape 2 : Instancier l'objet Game et l'ajouter à la liste
+                # Étape 2 : Instancier l'objet Game SANS detail
                 game = Game(
                     id_game=row["id_game"],
                     game_mode=row["game_mode"],
                     player1=p1,
                     player2=p2,
                     winner=winner,
-                    detail=row["detail"],
                 )
                 games_list.append(game)
 
